@@ -2,12 +2,12 @@
 
 namespace Oxide.Plugins
 {
-	[Info("Stationary Crafting", "NubbbZ", "1.0.1")]
+	[Info("Stationary Crafting", "NubbbZ", "1.0.2")]
 	[Description("Craft only when standing next to a workbench")]
 	class StationaryCrafting : CovalencePlugin
 	{
 		#region Variables
-		List<string> InWorkbenchRadius = new List<string>();
+		HashSet<ulong> InWorkbenchRadius = new HashSet<ulong>();
 		#endregion
 
 		#region Setup
@@ -31,7 +31,7 @@ namespace Oxide.Plugins
 		#region Hooks
 		private void OnEntityEnter(TriggerWorkbench triggerWorkbench, BasePlayer player)
 		{
-			InWorkbenchRadius.Add(player.IPlayer.Id);
+			InWorkbenchRadius.Add(player.userID);
 
 			if ((bool)Config["ShowMessages"] == true)
 			{
@@ -41,13 +41,13 @@ namespace Oxide.Plugins
 
 		bool CanCraft(ItemCrafter itemCrafter, ItemBlueprint bp, int amount)
 		{
-			BasePlayer Player = itemCrafter.GetComponent<BasePlayer>();
+			BasePlayer player = itemCrafter.GetComponent<BasePlayer>();
 
-			if (InWorkbenchRadius.Contains(Player.IPlayer.Id) == false)
+			if (InWorkbenchRadius.Contains(player.userID) == false)
 			{
 				if ((bool)Config["ShowMessages"] == true)
 				{
-					Player.IPlayer.Reply(lang.GetMessage("outofrange", this, Player.IPlayer.Id));
+					player.IPlayer.Reply(lang.GetMessage("outofrange", this, player.IPlayer.Id));
 				}
 				return false;
 			}
@@ -56,7 +56,7 @@ namespace Oxide.Plugins
 
 		private void OnEntityLeave(TriggerWorkbench triggerWorkbench, BasePlayer player)
 		{
-			InWorkbenchRadius.Remove(player.IPlayer.Id);
+			InWorkbenchRadius.Remove(player.userID);
 			if ((bool)Config["ShowMessages"] == true)
 			{
 				player.IPlayer.Reply(lang.GetMessage("canceled", this, player.IPlayer.Id));
